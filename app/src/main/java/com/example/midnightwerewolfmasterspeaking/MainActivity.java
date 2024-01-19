@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentIndex = 0;
     private CountDownTimer countDownTimer;
     private Runnable myRunnable;
+    long durationMessageInMillis;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,12 +58,12 @@ public class MainActivity extends AppCompatActivity {
         handler = new Handler();
 
         // Adiciona as falas
-        textList.add("Werewolfs abram os olhos e se reconheçam, após se reconhecerem fechem os olhos");
+        textList.add("Todos fechem os olhos. Werewolfs abram os olhos e se reconheçam, se estiver sozinho você pode olhar uma carta do centro");
         textList.add("Minion abra os olhos, Werewolfs façam sinal de positivo. Minion após identificar os werewolfs feche os olhos");
-        textList.add("Meinzons abram os olhos e se reconheçam, após se reconhecerem fechem os olhos");
-        textList.add("Sier abra os olhos você pode olhar a carta de uma pessoa qualquer ou olhar duas cartas do centro");
-        textList.add("Róber faça sua ação, você pode trocar sua carta com outra pessoa e olhar o personagem que recebeu");
-        textList.add("Troubloumaiker faça sua ação, você pode trocar a carta de duas pessoas, você não pode olhar as cartas");
+        textList.add("Meinsons abram os olhos e se reconheçam, após se reconhecerem fechem os olhos");
+        textList.add("Sier abra os olhos você pode olhar a carta de uma pessoa qualquer ou olhar duas cartas do centro. Após a ação feche os olhos.");
+        textList.add("Róber faça sua ação, você pode trocar sua carta com outra pessoa e olhar o personagem que recebeu. Após a ação feche os olhos.");
+        textList.add("Troubloumaiker faça sua ação, você pode trocar a carta de duas pessoas, você não pode olhar as cartas. Após a ação feche os olhos.");
         textList.add("Todos abram os olhos");
 
 //         Inicia o botão start
@@ -96,8 +97,6 @@ public class MainActivity extends AppCompatActivity {
 
         cronometer.setText(textInicialCrono);
 
-        speakMessage("Todos fechem os olhos");
-
         // Instanciando um Runnable para poder cancelar ele depois
         myRunnable = new Runnable() {
             @Override
@@ -105,13 +104,16 @@ public class MainActivity extends AppCompatActivity {
                 if(currentIndex < textList.size()) {
                     String message = textList.get(currentIndex);
                     speakMessage(message);
+                    durationMessageInMillis = durationMenssageInMillis(message);
                     currentIndex++;
-                    handler.postDelayed(this, seconds * 1000L);
+                    // Agendar o próximo discurso após a duração da mensagem atual
+                    handler.postDelayed(this, (durationMessageInMillis) + (seconds * 1000L));
                 }
             }
         };
 
-        handler.postDelayed(myRunnable, seconds * 1000L);
+        // Agendamento inicial para iniciar o processo
+        handler.postDelayed(myRunnable, 0);
 
         startCountDown(this, minutes);
     }
@@ -152,5 +154,14 @@ public class MainActivity extends AppCompatActivity {
 
         cronometer.setText(timeLeft);
 
+    }
+
+    private long durationMenssageInMillis(String message) {
+        int words = message.length();
+        int wordsPerMinute = 900; //Eu percebi que uma frase de length = 100 durou 7 segundos,
+        // então por regra de 3 em 1 minuto dá pra ler um length de 900. Dividindo por 900 encontramos o tempo em
+        // segundos para ler nossa frase
+
+        return (long) ((words / (double) wordsPerMinute) * 60 * 1000);
     }
 }
